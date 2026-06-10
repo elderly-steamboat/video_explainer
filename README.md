@@ -284,6 +284,19 @@ npm run dev
 
 Opens at `http://localhost:3000` for previewing compositions.
 
+### Web UI (Dashboard)
+
+A local Streamlit dashboard wraps the CLI for point-and-click pipeline runs.
+
+```bash
+pip install -e ".[ui]"
+streamlit run ui/app.py   # opens http://localhost:8501
+```
+
+Pick a project in the sidebar, run pipeline steps from the pill row, and watch
+live logs. Progress is saved to `projects/<name>/state.json` and survives restarts.
+Resolution presets include vertical (Shorts/Reels/TikTok) variants.
+
 ### Creating Animation Components
 
 ```tsx
