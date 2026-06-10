@@ -24,11 +24,27 @@ st.set_page_config(page_title="video explainer", layout="wide")
 # Handle pending "create project" request from the sidebar
 if st.session_state.get("_create_project"):
     name = st.session_state.pop("_create_project")
-    subprocess.run([sys.executable, "-m", "src.cli", "create", name], check=False)
-    state.load(name, PROJECTS_DIR)  # seeds state.json
+    result = subprocess.run(
+        [sys.executable, "-m", "src.cli", "create", name],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        state.load(name, PROJECTS_DIR)  # seeds state.json
+        st.session_state["project_pick"] = name  # select the new project
+        st.session_state["_flash"] = ("success", f"Created project '{name}'.")
+    else:
+        detail = (result.stderr or result.stdout or "").strip().splitlines()
+        msg = detail[-1] if detail else "create failed"
+        st.session_state["_flash"] = ("error", f"Could not create '{name}': {msg}")
+    st.session_state["new_project_name"] = ""  # clear the input box
     st.rerun()
 
 project = render_sidebar(PROJECTS_DIR)
+
+# Surface the result of the last create attempt
+flash = st.session_state.pop("_flash", None)
+if flash:
+    getattr(st.sidebar, flash[0])(flash[1])
 
 if st.session_state.get("_show_settings"):
     from ui.components.settings import render_settings
