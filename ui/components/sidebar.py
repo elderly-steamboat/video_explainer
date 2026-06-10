@@ -15,7 +15,10 @@ def render_sidebar(projects_dir: Path = Path("projects")) -> str | None:
     with st.sidebar.expander("+ new project"):
         new_name = st.text_input("Project id", key="new_project_name")
         if st.button("Create", key="create_project") and new_name:
+            # Flag the request and rerun immediately so app.py's top-of-script
+            # handler (which runs before this sidebar) processes it this cycle.
             st.session_state["_create_project"] = new_name
+            st.rerun()
 
     st.sidebar.markdown("---")
     show_settings = st.sidebar.toggle("Settings", key="show_settings")

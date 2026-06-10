@@ -74,14 +74,15 @@ if run_clicked:
         options.pop("url", None)  # an uploaded file takes precedence over a URL
     state.set_running(project, step, PROJECTS_DIR)
     lines: list[str] = []
-    gen = run(build_argv(step, project, options))
     exit_code = 0
-    try:
-        while True:
-            lines.append(next(gen))
-            update_log(log_area, lines)
-    except StopIteration as stop:
-        exit_code = stop.value or 0
+    with st.spinner(f"Running {step}…"):
+        gen = run(build_argv(step, project, options))
+        try:
+            while True:
+                lines.append(next(gen))
+                update_log(log_area, lines)
+        except StopIteration as stop:
+            exit_code = stop.value or 0
 
     if exit_code == 0:
         state.set_done(project, step, PROJECTS_DIR)
