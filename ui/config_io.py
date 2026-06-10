@@ -5,7 +5,10 @@ import yaml
 
 
 def load_config(path: Path = Path("config.yaml")) -> dict:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    p = Path(path)
+    if not p.exists():
+        return {}
+    return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
 
 
 def save_config(path: Path, data: dict) -> None:

@@ -34,8 +34,6 @@ def build_argv(step: str, project: str, options: dict) -> list[str]:
     elif step == "voiceover":
         if options.get("provider"):
             argv += ["--provider", options["provider"]]
-        if options.get("voice"):
-            argv += ["--voice", options["voice"]]
     elif step == "render":
         label = options.get("resolution", "1080p")
         value, is_short = RESOLUTION_PRESETS.get(label, ("1080p", False))

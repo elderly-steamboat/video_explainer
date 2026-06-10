@@ -21,10 +21,10 @@ def test_scenes_force():
     assert argv == [sys.executable, "-m", "src.cli", "scenes", "demo", "--force"]
 
 
-def test_voiceover_provider_and_voice():
-    argv = build_argv("voiceover", "demo", {"provider": "edge", "voice": "en-US-AriaNeural"})
+def test_voiceover_provider():
+    argv = build_argv("voiceover", "demo", {"provider": "edge"})
     assert argv == [sys.executable, "-m", "src.cli", "voiceover", "demo",
-                    "--provider", "edge", "--voice", "en-US-AriaNeural"]
+                    "--provider", "edge"]
 
 
 def test_render_horizontal_1080():

@@ -4,7 +4,6 @@ import streamlit as st
 from ui.cli_map import STEPS, RESOLUTION_PRESETS
 
 # pastel palette
-_LAVENDER = "#c9b8ff"
 _MINT = "#b8f0c8"
 _PEACH = "#f9c784"
 _RED = "#ffb3b3"
