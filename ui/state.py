@@ -5,8 +5,18 @@ from pathlib import Path
 
 from ui.cli_map import STEPS
 
-# Steps actively set to "running" in this process — exempt from stale reset.
+# Process-local set of (project, step) pairs currently marked "running" by this
+# process — exempt from stale-reset on load.  On process restart this set is
+# empty, so any "running" entry left by the previous process is correctly reset
+# to "failed".  Concurrent same-project browser tabs sharing one process are an
+# accepted edge case: one tab could reset another tab's running step.
 _active_running: set[tuple[str, str]] = set()
+
+
+def _reset_active_running() -> None:
+    """Clear _active_running — intended for use in tests to prevent state leakage."""
+    _active_running.clear()
+
 
 # step -> (output subdir, glob) used for artifact scanning + filesystem fallback
 _ARTIFACT_GLOB = {
@@ -17,6 +27,8 @@ _ARTIFACT_GLOB = {
     "storyboard": ("storyboard", "*.json"),
     "render": ("output", "*.mp4"),
 }
+
+assert set(_ARTIFACT_GLOB) == set(STEPS), "_ARTIFACT_GLOB must cover all STEPS"
 
 
 def _now() -> str:
@@ -53,13 +65,33 @@ def _derive_from_filesystem(project: str, projects_dir: Path) -> dict:
 
 
 def _read_or_derive(project: str, projects_dir: Path) -> dict:
-    """Read state.json as-is, or derive from filesystem — no stale-reset."""
+    """Read state.json as-is, or derive from filesystem — no stale-reset.
+
+    Handles two degraded cases transparently:
+    - Missing file: derive from filesystem and persist.
+    - Corrupt / malformed JSON: fall back to filesystem derivation, overwrite
+      the bad file so the next read succeeds.
+
+    After reading a valid JSON file the on-disk data is merged over a fresh
+    _empty_state() so that any step keys added after the file was written are
+    always present in the returned dict (schema-evolution safety).
+    """
     path = _state_path(project, projects_dir)
     if not path.exists():
         s = _derive_from_filesystem(project, projects_dir)
         _write(project, s, projects_dir)
         return s
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        on_disk = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        s = _derive_from_filesystem(project, projects_dir)
+        _write(project, s, projects_dir)
+        return s
+    # Backfill any steps that are absent from the on-disk dict so callers always
+    # receive a complete 6-step dict regardless of when the file was created.
+    base = _empty_state()
+    base.update({k: v for k, v in on_disk.items() if k in base})
+    return base
 
 
 def load(project: str, projects_dir: Path = Path("projects")) -> dict:
