@@ -64,6 +64,14 @@ render_outputs(current)
 log_area = make_log_area()
 
 if run_clicked:
+    # A script upload is saved into the project's input/ folder and passed via -i.
+    if step == "script" and options.get("upload") is not None:
+        up = options.pop("upload")
+        dest = PROJECTS_DIR / project / "input" / up.name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(up.getbuffer())
+        options["input"] = str(dest)
+        options.pop("url", None)  # an uploaded file takes precedence over a URL
     state.set_running(project, step, PROJECTS_DIR)
     lines: list[str] = []
     gen = run(build_argv(step, project, options))

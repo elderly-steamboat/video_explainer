@@ -43,9 +43,16 @@ def render_active_card(state: dict, project: str):
     options: dict = {}
 
     if step == "script":
-        src = st.text_input("Source URL (optional)", key="script_url")
+        up = st.file_uploader(
+            "Source document (.md, .pdf, .txt)",
+            type=["md", "markdown", "pdf", "txt"], key="script_upload",
+        )
+        if up is not None:
+            options["upload"] = up
+        src = st.text_input("…or source URL", key="script_url")
         if src:
             options["url"] = src
+        st.caption("Leave both empty to use existing files in the project's input/ folder.")
         options["mock"] = st.toggle("Mock LLM", key="script_mock")
     elif step in ("narration", "scenes"):
         options["force"] = st.toggle("Force regenerate", key=f"{step}_force")
