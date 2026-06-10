@@ -30,6 +30,11 @@ if st.session_state.get("_create_project"):
 
 project = render_sidebar(PROJECTS_DIR)
 
+if st.session_state.get("_show_settings"):
+    from ui.components.settings import render_settings
+    render_settings()
+    st.stop()
+
 if not project:
     st.info("Create or select a project in the sidebar to begin.")
     st.stop()

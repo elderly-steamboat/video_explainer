@@ -18,5 +18,7 @@ def render_sidebar(projects_dir: Path = Path("projects")) -> str | None:
             st.session_state["_create_project"] = new_name
 
     st.sidebar.markdown("---")
+    show_settings = st.sidebar.toggle("Settings", key="show_settings")
     st.sidebar.markdown("[Remotion Studio ↗](http://localhost:3000)")
+    st.session_state["_show_settings"] = show_settings
     return selected
