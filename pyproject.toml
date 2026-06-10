@@ -35,6 +35,9 @@ dev = [
 whisper = [
     "openai-whisper>=20231117",
 ]
+ui = [
+    "streamlit>=1.40",
+]
 
 [project.scripts]
 video-explainer = "src.cli:main"
