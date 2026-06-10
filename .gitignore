@@ -75,3 +75,8 @@ animations/src/**/*.meta
 tmp/
 temp/
 *.tmp
+
+# graphify / brainstorm artifacts
+graphify-out/
+.superpowers/
+.venv/

@@ -223,7 +223,7 @@ class SceneValidator:
         # (not a number, not a CSS value)
         # Exclude common SVG/CSS attribute names that look like variables
         svg_css_attrs = {
-            "stopOpacity", "fillOpacity", "strokeOpacity", "opacity",
+            "stopOpacity", "fillOpacity", "strokeOpacity", "floodOpacity", "opacity",
             "repeatCount", "repeatDur", "keyTimes", "keySplines",
             "gradientTransform", "patternTransform", "textLength",
             "baseFrequency", "numOctaves", "stitchTiles",

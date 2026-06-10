@@ -469,8 +469,10 @@ class ClaudeCodeLLMProvider(LLMProvider):
         cmd = self._build_command(prompt, system_prompt, tools=[])
         result = subprocess.run(
             cmd,
+            input=prompt,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             cwd=str(self.working_dir),
             timeout=self.timeout,
         )
@@ -502,8 +504,10 @@ class ClaudeCodeLLMProvider(LLMProvider):
         cmd = self._build_command(json_prompt, system_prompt, tools=[])
         result = subprocess.run(
             cmd,
+            input=json_prompt,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             cwd=str(self.working_dir),
             timeout=self.timeout,
         )
@@ -548,12 +552,14 @@ class ClaudeCodeLLMProvider(LLMProvider):
         try:
             if live_output:
                 # Stream output in real-time
-                return self._run_with_live_output(cmd, allow_writes)
+                return self._run_with_live_output(cmd, allow_writes, prompt)
             else:
                 result = subprocess.run(
                     cmd,
+                    input=prompt,
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
                     cwd=str(self.working_dir),
                     timeout=self.timeout,
                 )
@@ -584,7 +590,7 @@ class ClaudeCodeLLMProvider(LLMProvider):
             )
 
     def _run_with_live_output(
-        self, cmd: list[str], allow_writes: bool
+        self, cmd: list[str], allow_writes: bool, prompt: str = ""
     ) -> ClaudeCodeResult:
         """Run Claude Code with live output streaming.
 
@@ -601,11 +607,18 @@ class ClaudeCodeLLMProvider(LLMProvider):
         try:
             process = subprocess.Popen(
                 cmd,
+                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
                 cwd=str(self.working_dir),
             )
+
+            # Feed the prompt via stdin, then close so the CLI starts processing.
+            if process.stdin is not None:
+                process.stdin.write(prompt)
+                process.stdin.close()
 
             print("\n" + "=" * 60)
             print("Claude Code Output:")
@@ -661,7 +674,10 @@ class ClaudeCodeLLMProvider(LLMProvider):
         Returns:
             Command as list of strings
         """
-        cmd = ["claude", "--print", "-p", prompt]
+        # NOTE: the prompt is fed via stdin (see callers), NOT as a CLI arg.
+        # On Windows, CreateProcess caps the command line length and large
+        # prompts raise [WinError 206] "filename or extension is too long".
+        cmd = ["claude", "--print"]
 
         # Add model if specified in config
         if self.config.model:
